@@ -190,6 +190,8 @@ const CardFooter = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
+  flex-wrap: wrap;
 `;
 
 const BadgeGroup = styled.div`
@@ -216,6 +218,8 @@ const Badge = styled.span<{ $variant?: "success" | "warning" }>`
   font-size: ${({ theme }) => theme.typography.fontSize.xs};
   font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
   text-transform: capitalize;
+  white-space: nowrap;
+  flex-shrink: 0;
 `;
 
 const ActionGroup = styled.div`

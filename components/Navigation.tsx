@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import styled from '@emotion/styled';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
-import { useTheme } from './ThemeProvider';
-import { Theme } from '@/types/theme';
+import styled from "@emotion/styled";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "./ThemeProvider";
+import { Theme } from "@/types/theme";
 
 interface NavItem {
   label: string;
@@ -14,11 +14,10 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Home', href: '/', requireAuth: false },
-  { label: 'Dashboard', href: '/dashboard', requireAuth: true },
-  { label: 'My Habits', href: '/habits', requireAuth: true },
-  { label: 'Check-In', href: '/check-in', requireAuth: true },
-  { label: 'Reflections', href: '/reflections', requireAuth: true },
+  { label: "Dashboard", href: "/dashboard", requireAuth: true },
+  { label: "My Habits", href: "/habits", requireAuth: true },
+  { label: "Check-In", href: "/check-in", requireAuth: true },
+  { label: "Reflections", href: "/reflections", requireAuth: true },
 ];
 
 export function Navigation(): React.JSX.Element {
@@ -27,6 +26,10 @@ export function Navigation(): React.JSX.Element {
   const pathname = usePathname();
 
   const visibleItems = NAV_ITEMS.filter((item) => {
+    // Hide dashboard link when authenticated (logo serves as dashboard link)
+    if (item.href === "/dashboard" && isAuthenticated) {
+      return false;
+    }
     if (item.requireAuth) {
       return isAuthenticated;
     }
@@ -34,14 +37,14 @@ export function Navigation(): React.JSX.Element {
   });
 
   const handleSignOut = async (): Promise<void> => {
-    await signOut({ callbackUrl: '/' });
+    await signOut({ callbackUrl: "/" });
   };
 
   return (
     <Nav>
       <Container>
         <Logo>
-          <Link href="/">
+          <Link href={isAuthenticated ? "/dashboard" : "/"}>
             <LogoText>🔥 Reforge</LogoText>
           </Link>
         </Logo>
@@ -51,9 +54,7 @@ export function Navigation(): React.JSX.Element {
             const isActive = pathname === item.href;
             return (
               <NavLinkWrapper key={item.href} $isActive={isActive}>
-                <Link href={item.href}>
-                  {item.label}
-                </Link>
+                <Link href={item.href}>{item.label}</Link>
               </NavLinkWrapper>
             );
           })}
@@ -61,15 +62,13 @@ export function Navigation(): React.JSX.Element {
 
         <Actions>
           <ThemeToggle onClick={toggleTheme} aria-label="Toggle theme">
-            {mode === 'light' ? '🌙' : '☀️'}
+            {mode === "light" ? "🌙" : "☀️"}
           </ThemeToggle>
 
           {isAuthenticated ? (
             <>
               <UserInfo>{user?.name ?? user?.email}</UserInfo>
-              <SignOutButton onClick={handleSignOut}>
-                Sign Out
-              </SignOutButton>
+              <SignOutButton onClick={handleSignOut}>Sign Out</SignOutButton>
             </>
           ) : (
             <>
@@ -143,13 +142,14 @@ const NavLinks = styled.div`
 
 const NavLinkWrapper = styled.div<{ $isActive: boolean }>`
   a {
-    padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
+    padding: ${({ theme }) => theme.spacing.sm}
+      ${({ theme }) => theme.spacing.md};
     border-radius: ${({ theme }) => theme.borderRadius.md};
     font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
     color: ${({ theme, $isActive }) =>
       $isActive ? theme.colors.primary : theme.colors.text.secondary};
     background-color: ${({ theme, $isActive }) =>
-      $isActive ? theme.colors.surfaceHover : 'transparent'};
+      $isActive ? theme.colors.surfaceHover : "transparent"};
     transition: all ${({ theme }) => theme.transitions.fast};
     text-decoration: none;
     display: block;
@@ -162,7 +162,8 @@ const NavLinkWrapper = styled.div<{ $isActive: boolean }>`
 
   @media (max-width: 768px) {
     a {
-      padding: ${({ theme }) => theme.spacing.xs} ${({ theme }) => theme.spacing.sm};
+      padding: ${({ theme }) => theme.spacing.xs}
+        ${({ theme }) => theme.spacing.sm};
       font-size: ${({ theme }) => theme.typography.fontSize.sm};
     }
   }
@@ -226,9 +227,9 @@ const AuthButton = styled.button<{ $primary?: boolean }>`
   padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
   border-radius: ${({ theme }) => theme.borderRadius.md};
   border: ${({ theme, $primary }) =>
-    $primary ? 'none' : `1px solid ${theme.colors.border}`};
+    $primary ? "none" : `1px solid ${theme.colors.border}`};
   background-color: ${({ theme, $primary }) =>
-    $primary ? theme.colors.primary : 'transparent'};
+    $primary ? theme.colors.primary : "transparent"};
   color: ${({ theme, $primary }) =>
     $primary ? theme.colors.text.inverse : theme.colors.text.secondary};
   font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
@@ -242,4 +243,3 @@ const AuthButton = styled.button<{ $primary?: boolean }>`
       $primary ? theme.colors.text.inverse : theme.colors.text.primary};
   }
 `;
-
