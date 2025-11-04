@@ -1,5 +1,10 @@
 import { Habit } from "@prisma/client";
-import { CreateHabitDto, UpdateHabitDto, HabitFilters } from "@/types/habits";
+import {
+  CreateHabitDto,
+  UpdateHabitDto,
+  HabitFilters,
+  HabitWithStats,
+} from "@/types/habits";
 import { ApiResponse } from "@/types/forms";
 
 const BASE_URL = "/api/habits";
@@ -93,5 +98,33 @@ export const habitsApi = {
     if (!response.ok || !data.success) {
       throw new Error(data.error || "Failed to delete habit");
     }
+  },
+
+  /**
+   * Get habit with statistics
+   */
+  async getWithStats(id: string): Promise<HabitWithStats> {
+    const response = await fetch(`${BASE_URL}/${id}/stats`);
+    const data: ApiResponse<HabitWithStats> = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || "Failed to fetch habit stats");
+    }
+
+    return data.data!;
+  },
+
+  /**
+   * Get all habits with statistics
+   */
+  async getAllWithStats(): Promise<HabitWithStats[]> {
+    const response = await fetch(`${BASE_URL}/stats`);
+    const data: ApiResponse<HabitWithStats[]> = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || "Failed to fetch habits stats");
+    }
+
+    return data.data!;
   },
 };
