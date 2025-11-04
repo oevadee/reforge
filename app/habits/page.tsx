@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import styled from "@emotion/styled";
-import { Habit } from "@prisma/client";
+import { HabitWithStats } from "@/types/habits";
 import { MainContent } from "@/components/MainContent";
 import { HabitForm } from "@/components/habits/HabitForm";
 import { HabitCard } from "@/components/habits/HabitCard";
@@ -12,7 +12,7 @@ import { habitsApi } from "@/lib/api/habits";
 import { CreateHabitSchema } from "@/lib/validations/habit";
 
 export default function HabitsPage(): React.JSX.Element {
-  const [habits, setHabits] = useState<Habit[]>([]);
+  const [habits, setHabits] = useState<HabitWithStats[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -24,7 +24,7 @@ export default function HabitsPage(): React.JSX.Element {
   const loadHabits = async (): Promise<void> => {
     try {
       setIsLoading(true);
-      const data = await habitsApi.getAll({ isActive: true });
+      const data = await habitsApi.getAllWithStats();
       setHabits(data);
     } catch (error) {
       console.error("Failed to load habits:", error);
@@ -47,7 +47,7 @@ export default function HabitsPage(): React.JSX.Element {
     }
   };
 
-  const handleDelete = async (habit: Habit): Promise<void> => {
+  const handleDelete = async (habit: HabitWithStats): Promise<void> => {
     if (!confirm(`Delete habit "${habit.name}"?`)) return;
 
     try {
