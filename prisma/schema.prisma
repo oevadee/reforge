@@ -1,0 +1,197 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// Authentication Models (for NextAuth.js)
+// ============================================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?   // For credentials provider
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  accounts      Account[]
+  sessions      Session[]
+  habits        Habit[]
+  habitLogs     HabitLog[]
+  reflections   Reflection[]
+  aiCoachCache  AiCoachCache[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ============================================
+// Habit Tracking Models
+// ============================================
+
+enum HabitFrequency {
+  DAILY
+  WEEKLY
+  CUSTOM
+}
+
+enum HabitType {
+  BUILD    // Good habit to build
+  BREAK    // Bad habit to break
+}
+
+model Habit {
+  id          String         @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  type        HabitType      @default(BUILD)
+  frequency   HabitFrequency @default(DAILY)
+
+  // For WEEKLY: days of week (e.g., ["MON", "WED", "FRI"])
+  // For CUSTOM: specific dates or intervals
+  schedule    Json?
+
+  // Goal tracking
+  targetCount Int?           // e.g., 3 times per week
+
+  // Metadata
+  color       String?        // Hex color for UI
+  icon        String?        // Icon identifier
+  isActive    Boolean        @default(true)
+
+  // Timestamps
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  // Relations
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logs        HabitLog[]
+
+  @@index([userId, isActive])
+  @@map("habits")
+}
+
+enum LogStatus {
+  COMPLETED
+  SKIPPED
+  FAILED
+}
+
+model HabitLog {
+  id        String    @id @default(cuid())
+  habitId   String
+  userId    String
+  date      DateTime  @db.Date
+  status    LogStatus
+  note      String?   @db.Text
+  createdAt DateTime  @default(now())
+
+  habit     Habit     @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([habitId, date])
+  @@index([userId, date])
+  @@map("habit_logs")
+}
+
+// ============================================
+// Reflection & Mood Tracking Models
+// ============================================
+
+enum MoodLevel {
+  VERY_BAD
+  BAD
+  NEUTRAL
+  GOOD
+  VERY_GOOD
+}
+
+model Reflection {
+  id        String     @id @default(cuid())
+  userId    String
+  date      DateTime   @db.Date
+  mood      MoodLevel?
+  content   String?    @db.Text
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId, date])
+  @@map("reflections")
+}
+
+// ============================================
+// AI Coach Cache Models
+// ============================================
+
+enum CoachMessageType {
+  DAILY_SUMMARY
+  WEEKLY_SUMMARY
+  MOTIVATION
+  INSIGHT
+}
+
+model AiCoachCache {
+  id          String           @id @default(cuid())
+  userId      String
+  messageType CoachMessageType
+  content     String           @db.Text
+  metadata    Json?            // Store prompt params, model version, etc.
+  validUntil  DateTime         // Cache expiration
+  createdAt   DateTime         @default(now())
+
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, messageType, validUntil])
+  @@index([userId, messageType, validUntil])
+  @@map("ai_coach_cache")
+}
