@@ -29,6 +29,9 @@ dependencies:
   next-auth:
     specifier: ^4
     version: 4.24.13(next@16.0.1)(react-dom@19.2.0)(react@19.2.0)
+  openai:
+    specifier: ^6.8.0
+    version: 6.8.0(zod@4.1.12)
   react:
     specifier: 19.2.0
     version: 19.2.0
@@ -4638,6 +4641,21 @@ packages:
     dependencies:
       mimic-function: 5.0.1
     dev: true
+
+  /openai@6.8.0(zod@4.1.12):
+    resolution: {integrity: sha512-GQUpzb9FoNkh1wqJuDIQ8e/Sq8dW+T3GakG6wJTXBE8Lufx1GaUcgZd087vhm8f/MiOzsTEkfRamYxzJ/jOoiw==}
+    hasBin: true
+    peerDependencies:
+      ws: ^8.18.0
+      zod: ^3.25 || ^4.0
+    peerDependenciesMeta:
+      ws:
+        optional: true
+      zod:
+        optional: true
+    dependencies:
+      zod: 4.1.12
+    dev: false
 
   /openid-client@5.7.1:
     resolution: {integrity: sha512-jDBPgSVfTnkIh71Hg9pRvtJc6wTwqjRkN88+gCFtYWrlP4Yx2Dsrow8uPi3qLr/aeymPF3o2+dS+wOpglK04ew==}
