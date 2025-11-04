@@ -6,9 +6,11 @@ import { useSession } from "next-auth/react";
 import { MainContent } from "@/components/MainContent";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
+import { CompletionChart } from "@/components/charts/CompletionChart";
 import { Loading } from "@/components/Loading";
 import { Button } from "@/components/forms/Button";
 import { DashboardData } from "@/types/dashboard";
+import { ChartData } from "@/types/charts";
 import { ApiResponse } from "@/types/forms";
 import Link from "next/link";
 
@@ -17,10 +19,12 @@ export default function DashboardPage(): React.JSX.Element {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(
     null,
   );
+  const [chartData, setChartData] = useState<ChartData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     loadDashboardData();
+    loadChartData();
   }, []);
 
   const loadDashboardData = async (): Promise<void> => {
@@ -36,6 +40,19 @@ export default function DashboardPage(): React.JSX.Element {
       console.error("Failed to load dashboard data:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadChartData = async (): Promise<void> => {
+    try {
+      const response = await fetch("/api/charts");
+      const data: ApiResponse<ChartData> = await response.json();
+
+      if (data.success && data.data) {
+        setChartData(data.data);
+      }
+    } catch (error) {
+      console.error("Failed to load chart data:", error);
     }
   };
 
@@ -146,6 +163,12 @@ export default function DashboardPage(): React.JSX.Element {
 
         <RecentActivity activities={recentActivity} />
       </ContentGrid>
+
+      {chartData && chartData.completionTrend.length > 0 && (
+        <ChartSection>
+          <CompletionChart data={chartData.completionTrend} />
+        </ChartSection>
+      )}
     </MainContent>
   );
 }
@@ -281,6 +304,10 @@ const CompletionMessage = styled.div`
   border-radius: ${({ theme }) => theme.borderRadius.md};
   font-size: ${({ theme }) => theme.typography.fontSize.sm};
   font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
+`;
+
+const ChartSection = styled.div`
+  margin-top: ${({ theme }) => theme.spacing.xl};
 `;
 
 const ErrorMessage = styled.div`
