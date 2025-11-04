@@ -7,11 +7,13 @@ import { MainContent } from "@/components/MainContent";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { CompletionChart } from "@/components/charts/CompletionChart";
+import { CoachMessage } from "@/components/coach/CoachMessage";
 import { Loading } from "@/components/Loading";
 import { Button } from "@/components/forms/Button";
 import { DashboardData } from "@/types/dashboard";
 import { ChartData } from "@/types/charts";
 import { ApiResponse } from "@/types/forms";
+import { coachApi } from "@/lib/api/coach";
 import Link from "next/link";
 
 export default function DashboardPage(): React.JSX.Element {
@@ -21,10 +23,15 @@ export default function DashboardPage(): React.JSX.Element {
   );
   const [chartData, setChartData] = useState<ChartData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [dailySummary, setDailySummary] = useState<string>("");
+  const [motivation, setMotivation] = useState<string>("");
+  const [isLoadingSummary, setIsLoadingSummary] = useState(true);
+  const [isLoadingMotivation, setIsLoadingMotivation] = useState(true);
 
   useEffect(() => {
     loadDashboardData();
     loadChartData();
+    loadAIMessages();
   }, []);
 
   const loadDashboardData = async (): Promise<void> => {
@@ -53,6 +60,34 @@ export default function DashboardPage(): React.JSX.Element {
       }
     } catch (error) {
       console.error("Failed to load chart data:", error);
+    }
+  };
+
+  const loadAIMessages = async (): Promise<void> => {
+    // Load summary
+    try {
+      setIsLoadingSummary(true);
+      const summaryData = await coachApi.getSummary("daily");
+      setDailySummary(summaryData.content);
+    } catch (error) {
+      console.error("Failed to load summary:", error);
+      setDailySummary("Unable to load daily summary. Please try again later.");
+    } finally {
+      setIsLoadingSummary(false);
+    }
+
+    // Load motivation
+    try {
+      setIsLoadingMotivation(true);
+      const motivationData = await coachApi.getMotivation();
+      setMotivation(motivationData.content);
+    } catch (error) {
+      console.error("Failed to load motivation:", error);
+      setMotivation(
+        "Unable to load motivation message. Please try again later.",
+      );
+    } finally {
+      setIsLoadingMotivation(false);
     }
   };
 
@@ -163,6 +198,22 @@ export default function DashboardPage(): React.JSX.Element {
 
         <RecentActivity activities={recentActivity} />
       </ContentGrid>
+
+      <AISection>
+        <CoachMessage
+          title="Your Daily Summary"
+          content={dailySummary}
+          isLoading={isLoadingSummary}
+          onRefresh={loadAIMessages}
+        />
+
+        <CoachMessage
+          title="Motivation of the Day"
+          content={motivation}
+          isLoading={isLoadingMotivation}
+          onRefresh={loadAIMessages}
+        />
+      </AISection>
 
       {chartData && chartData.completionTrend.length > 0 && (
         <ChartSection>
@@ -304,6 +355,17 @@ const CompletionMessage = styled.div`
   border-radius: ${({ theme }) => theme.borderRadius.md};
   font-size: ${({ theme }) => theme.typography.fontSize.sm};
   font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
+`;
+
+const AISection = styled.div`
+  margin-top: ${({ theme }) => theme.spacing.xl};
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: ${({ theme }) => theme.spacing.xl};
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const ChartSection = styled.div`
