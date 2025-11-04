@@ -4,6 +4,8 @@ import "./globals.css";
 import EmotionRegistry from "@/app/emotion-registry";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { GlobalStyles } from "@/components/GlobalStyles";
+import { SessionProvider } from "@/components/SessionProvider";
+import { getSession } from "@/lib/auth-utils";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,20 +22,24 @@ export const metadata: Metadata = {
   description: "A personal development and habit tracking app",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
-}>): React.JSX.Element {
+}>): Promise<React.JSX.Element> {
+  const session = await getSession();
+
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <EmotionRegistry>
-          <ThemeProvider>
-            <GlobalStyles />
-            {children}
-          </ThemeProvider>
-        </EmotionRegistry>
+        <SessionProvider session={session}>
+          <EmotionRegistry>
+            <ThemeProvider>
+              <GlobalStyles />
+              {children}
+            </ThemeProvider>
+          </EmotionRegistry>
+        </SessionProvider>
       </body>
     </html>
   );
