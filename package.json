@@ -30,6 +30,7 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@hookform/resolvers": "^5.2.2",
+    "@huggingface/transformers": "^3.7.6",
     "@prisma/client": "^6.18.0",
     "framer-motion": "^12.23.24",
     "next": "16.0.1",
