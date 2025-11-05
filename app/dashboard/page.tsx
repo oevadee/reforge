@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import styled from "@emotion/styled";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { MainContent } from "@/components/MainContent";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
@@ -13,15 +14,19 @@ import { Button } from "@/components/forms/Button";
 import { DashboardData } from "@/types/dashboard";
 import { ChartData } from "@/types/charts";
 import { ApiResponse } from "@/types/forms";
+import { UserSettings } from "@/types/settings";
 import { coachApi } from "@/lib/api/coach";
+import { settingsApi } from "@/lib/api/settings";
 import Link from "next/link";
 
 export default function DashboardPage(): React.JSX.Element {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(
     null,
   );
   const [chartData, setChartData] = useState<ChartData | null>(null);
+  const [settings, setSettings] = useState<UserSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [dailySummary, setDailySummary] = useState<string>("");
   const [motivation, setMotivation] = useState<string>("");
@@ -29,10 +34,26 @@ export default function DashboardPage(): React.JSX.Element {
   const [isLoadingMotivation, setIsLoadingMotivation] = useState(true);
 
   useEffect(() => {
-    loadDashboardData();
-    loadChartData();
-    loadAIMessages();
-  }, []);
+    // Redirect if not authenticated
+    if (status === "unauthenticated") {
+      router.push("/auth/signin");
+      return;
+    }
+
+    // Only load data if user is authenticated
+    if (status === "authenticated") {
+      loadDashboardData();
+      loadChartData();
+      loadSettings();
+    }
+  }, [status, router]);
+
+  useEffect(() => {
+    // Only load AI messages if AI is enabled
+    if (settings?.aiEnabled) {
+      loadAIMessages();
+    }
+  }, [settings]);
 
   const loadDashboardData = async (): Promise<void> => {
     try {
@@ -60,6 +81,17 @@ export default function DashboardPage(): React.JSX.Element {
       }
     } catch (error) {
       console.error("Failed to load chart data:", error);
+    }
+  };
+
+  const loadSettings = async (): Promise<void> => {
+    try {
+      const data = await settingsApi.get();
+      setSettings(data);
+    } catch (error) {
+      console.error("Failed to load settings:", error);
+      // Default to AI enabled if settings fail to load
+      setSettings({ aiEnabled: true });
     }
   };
 
@@ -199,21 +231,23 @@ export default function DashboardPage(): React.JSX.Element {
         <RecentActivity activities={recentActivity} />
       </ContentGrid>
 
-      <AISection>
-        <CoachMessage
-          title="Your Daily Summary"
-          content={dailySummary}
-          isLoading={isLoadingSummary}
-          onRefresh={() => loadAIMessages(true)}
-        />
+      {settings?.aiEnabled && (
+        <AISection>
+          <CoachMessage
+            title="Your Daily Summary"
+            content={dailySummary}
+            isLoading={isLoadingSummary}
+            onRefresh={() => loadAIMessages(true)}
+          />
 
-        <CoachMessage
-          title="Motivation of the Day"
-          content={motivation}
-          isLoading={isLoadingMotivation}
-          onRefresh={() => loadAIMessages(true)}
-        />
-      </AISection>
+          <CoachMessage
+            title="Motivation of the Day"
+            content={motivation}
+            isLoading={isLoadingMotivation}
+            onRefresh={() => loadAIMessages(true)}
+          />
+        </AISection>
+      )}
 
       {chartData && chartData.completionTrend.length > 0 && (
         <ChartSection>

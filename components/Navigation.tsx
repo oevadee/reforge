@@ -18,6 +18,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "My Habits", href: "/habits", requireAuth: true },
   { label: "Check-In", href: "/check-in", requireAuth: true },
   { label: "Reflections", href: "/reflections", requireAuth: true },
+  { label: "Settings", href: "/settings", requireAuth: true },
 ];
 
 export function Navigation(): React.JSX.Element {
