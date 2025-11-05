@@ -6,9 +6,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const user = await getCurrentUser();
 
-    // Get timeframe from query params
+    // Get query params
     const searchParams = request.nextUrl.searchParams;
     const timeframe = searchParams.get("timeframe") || "daily";
+    const forceRefresh = searchParams.get("refresh") === "true";
 
     if (timeframe !== "daily" && timeframe !== "weekly") {
       return NextResponse.json(
@@ -22,8 +23,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const summary =
       timeframe === "daily"
-        ? await CoachSummaryService.generateDailySummary(user.id)
-        : await CoachSummaryService.generateWeeklySummary(user.id);
+        ? await CoachSummaryService.generateDailySummary(user.id, !forceRefresh)
+        : await CoachSummaryService.generateWeeklySummary(
+            user.id,
+            !forceRefresh,
+          );
 
     return NextResponse.json({
       success: true,

@@ -26,8 +26,14 @@ export const coachApi = {
    */
   async getSummary(
     timeframe: "daily" | "weekly" = "daily",
+    refresh: boolean = false,
   ): Promise<CoachSummaryResponse> {
-    const response = await fetch(`/api/coach/summary?timeframe=${timeframe}`);
+    const params = new URLSearchParams({
+      timeframe,
+      ...(refresh && { refresh: "true" }),
+    });
+
+    const response = await fetch(`/api/coach/summary?${params}`);
     const data: ApiResponse<CoachSummaryResponse> = await response.json();
 
     if (!response.ok || !data.success) {
@@ -40,11 +46,16 @@ export const coachApi = {
   /**
    * Get motivational message (general or habit-specific)
    */
-  async getMotivation(habitId?: string): Promise<CoachMotivationResponse> {
-    const url = habitId
-      ? `/api/coach/motivation?habitId=${habitId}`
-      : "/api/coach/motivation";
+  async getMotivation(
+    habitId?: string,
+    refresh: boolean = false,
+  ): Promise<CoachMotivationResponse> {
+    const params = new URLSearchParams({
+      ...(habitId && { habitId }),
+      ...(refresh && { refresh: "true" }),
+    });
 
+    const url = `/api/coach/motivation?${params}`;
     const response = await fetch(url);
     const data: ApiResponse<CoachMotivationResponse> = await response.json();
 

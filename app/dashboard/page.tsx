@@ -63,11 +63,11 @@ export default function DashboardPage(): React.JSX.Element {
     }
   };
 
-  const loadAIMessages = async (): Promise<void> => {
+  const loadAIMessages = async (refresh: boolean = false): Promise<void> => {
     // Load summary
     try {
       setIsLoadingSummary(true);
-      const summaryData = await coachApi.getSummary("daily");
+      const summaryData = await coachApi.getSummary("daily", refresh);
       setDailySummary(summaryData.content);
     } catch (error) {
       console.error("Failed to load summary:", error);
@@ -79,7 +79,7 @@ export default function DashboardPage(): React.JSX.Element {
     // Load motivation
     try {
       setIsLoadingMotivation(true);
-      const motivationData = await coachApi.getMotivation();
+      const motivationData = await coachApi.getMotivation(undefined, refresh);
       setMotivation(motivationData.content);
     } catch (error) {
       console.error("Failed to load motivation:", error);
@@ -204,14 +204,14 @@ export default function DashboardPage(): React.JSX.Element {
           title="Your Daily Summary"
           content={dailySummary}
           isLoading={isLoadingSummary}
-          onRefresh={loadAIMessages}
+          onRefresh={() => loadAIMessages(true)}
         />
 
         <CoachMessage
           title="Motivation of the Day"
           content={motivation}
           isLoading={isLoadingMotivation}
-          onRefresh={loadAIMessages}
+          onRefresh={() => loadAIMessages(true)}
         />
       </AISection>
 

@@ -8,10 +8,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const searchParams = request.nextUrl.searchParams;
     const habitId = searchParams.get("habitId");
+    const forceRefresh = searchParams.get("refresh") === "true";
 
     const motivation = habitId
       ? await CoachMotivationService.generateHabitInsight(habitId, user.id)
-      : await CoachMotivationService.generateMotivation(user.id);
+      : await CoachMotivationService.generateMotivation(user.id, !forceRefresh);
 
     return NextResponse.json({
       success: true,
