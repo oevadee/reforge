@@ -52,8 +52,8 @@ export class CoachSummaryService {
       timeframe: "daily",
     };
 
-    const messages = PromptBuilder.buildDailySummary(context);
-    const response = await AIService.generateCompletion(messages);
+    // Server-side generation disabled: return not found to trigger client generation path
+    throw new Error("AI content not available in cache");
 
     // Cache the response for 24 hours
     await AiCoachCacheRepository.set(
@@ -112,8 +112,7 @@ export class CoachSummaryService {
       timeframe: "weekly",
     };
 
-    const messages = PromptBuilder.buildWeeklySummary(context);
-    const response = await AIService.generateCompletion(messages);
+    throw new Error("AI content not available in cache");
 
     // Cache the response for 7 days
     await AiCoachCacheRepository.set(
@@ -187,21 +186,7 @@ export class CoachSummaryService {
       ? PromptBuilder.buildDailySummaryWithMood(context)
       : PromptBuilder.buildDailySummary(context);
 
-    const response = await AIService.generateCompletion(messages);
-
-    // Cache the response for 24 hours
-    await AiCoachCacheRepository.set(
-      userId,
-      "DAILY_SUMMARY",
-      response.content,
-      {
-        model: response.model,
-        tokenUsage: response.totalTokens,
-      },
-      24,
-    );
-
-    return response;
+    throw new Error("AI content not available in cache");
   }
 
   /**
@@ -233,10 +218,6 @@ export class CoachSummaryService {
       streak: h.currentStreak,
     }));
 
-    const messages = PromptBuilder.buildWeeklyReflectionAnalysis(
-      reflectionData,
-      habitData,
-    );
-    return await AIService.generateCompletion(messages);
+    throw new Error("AI content not available in cache");
   }
 }

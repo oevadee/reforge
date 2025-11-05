@@ -21,12 +21,16 @@ export const metadata: Metadata = {
     "Build good habits, break bad ones, and reflect on daily progress with AI-powered insights.",
   keywords: ["habits", "productivity", "self-improvement", "AI", "tracking"],
   authors: [{ name: "Reforge Team" }],
-  viewport: "width=device-width, initial-scale=1",
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#ffffff" },
     { media: "(prefers-color-scheme: dark)", color: "#0f172a" },
   ],
-};
+} as const;
 
 interface RootLayoutProps {
   children: React.ReactNode;
@@ -39,7 +43,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className={inter.variable}>
-      <body>
+      <body suppressHydrationWarning>
         <EmotionRegistry>
           <SessionProvider session={session}>
             <ThemeProvider>

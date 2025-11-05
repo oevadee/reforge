@@ -10,27 +10,38 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const type = searchParams.get("type") || "daily";
     const forceRefresh = searchParams.get("refresh") === "true";
 
-    let insights;
-    if (type === "weekly") {
-      insights = await CoachSummaryService.generateWeeklyReflectionAnalysis(
-        user.id,
-      );
-    } else {
-      insights = await CoachSummaryService.generateDailySummaryWithMood(
-        user.id,
-        !forceRefresh,
+    try {
+      let insights;
+      if (type === "weekly") {
+        insights = await CoachSummaryService.generateWeeklyReflectionAnalysis(
+          user.id,
+        );
+      } else {
+        insights = await CoachSummaryService.generateDailySummaryWithMood(
+          user.id,
+          !forceRefresh,
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          content: insights.content,
+          type,
+          model: insights.model,
+          tokenUsage: insights.totalTokens,
+        },
+      });
+    } catch {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "No cached AI content. Enable AI insights to generate on device.",
+        },
+        { status: 404 },
       );
     }
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        content: insights.content,
-        type,
-        model: insights.model,
-        tokenUsage: insights.totalTokens,
-      },
-    });
   } catch (error) {
     console.error("Error generating insights:", error);
     return NextResponse.json(

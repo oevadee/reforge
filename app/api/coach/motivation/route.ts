@@ -10,22 +10,42 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const habitId = searchParams.get("habitId");
     const forceRefresh = searchParams.get("refresh") === "true";
 
-    const motivation = habitId
-      ? await CoachMotivationService.generateHabitInsight(habitId, user.id)
-      : await CoachMotivationService.generateMotivation(user.id, !forceRefresh);
+    try {
+      const motivation = habitId
+        ? await CoachMotivationService.generateHabitInsight(habitId, user.id)
+        : await CoachMotivationService.generateMotivation(
+            user.id,
+            !forceRefresh,
+          );
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        content: motivation.content,
-        habitId: habitId || null,
-        tokenUsage: {
-          prompt: motivation.promptTokens,
-          completion: motivation.completionTokens,
-          total: motivation.totalTokens,
+      return NextResponse.json({
+        success: true,
+        data: {
+          content: motivation.content,
+          habitId: habitId || null,
+          tokenUsage: {
+            prompt: motivation.promptTokens,
+            completion: motivation.completionTokens,
+            total: motivation.totalTokens,
+          },
         },
-      },
-    });
+      });
+    } catch (e: any) {
+      if (e?.message === "Habit not found") {
+        return NextResponse.json(
+          { success: false, error: "Habit not found" },
+          { status: 404 },
+        );
+      }
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "No cached AI content. Enable AI insights to generate on device.",
+        },
+        { status: 404 },
+      );
+    }
   } catch (error: any) {
     if (error.message === "Habit not found") {
       return NextResponse.json(

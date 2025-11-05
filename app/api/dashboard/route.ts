@@ -9,6 +9,12 @@ import { DashboardData, RecentActivityItem } from "@/types/dashboard";
 export async function GET(_request: NextRequest): Promise<NextResponse> {
   try {
     const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 },
+      );
+    }
     const today = getTodayISO();
 
     // Get all active habits with stats

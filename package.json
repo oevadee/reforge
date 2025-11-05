@@ -13,7 +13,8 @@
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "prepare": "husky"
+    "prepare": "husky",
+    "postinstall": "sh -c 'if [ -n \"$DATABASE_URL\" ]; then prisma generate; else echo \"Skipping prisma generate: DATABASE_URL not set\"; fi'"
   },
   "lint-staged": {
     "*.{ts,tsx,json,md}": [

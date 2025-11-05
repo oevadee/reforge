@@ -26,7 +26,7 @@ export function CompletionChart({
     <Container>
       <Title>Completion Trend (Last 30 Days)</Title>
       <ChartWrapper>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height={300}>
           <LineChart
             data={data}
             margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
@@ -80,6 +80,8 @@ const Container = styled.div`
   background-color: ${({ theme }) => theme.colors.surface};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   box-shadow: ${({ theme }) => theme.shadows.sm};
+  /* Ensure grid parents don't collapse width for Recharts */
+  min-width: 0;
 `;
 
 const Title = styled.h2`
@@ -92,5 +94,6 @@ const Title = styled.h2`
 
 const ChartWrapper = styled.div`
   width: 100%;
-  height: 300px;
+  /* Allow child to measure width properly within grid/flex parents */
+  min-width: 0;
 `;

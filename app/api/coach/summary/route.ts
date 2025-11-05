@@ -21,26 +21,40 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const summary =
-      timeframe === "daily"
-        ? await CoachSummaryService.generateDailySummary(user.id, !forceRefresh)
-        : await CoachSummaryService.generateWeeklySummary(
-            user.id,
-            !forceRefresh,
-          );
+    try {
+      const summary =
+        timeframe === "daily"
+          ? await CoachSummaryService.generateDailySummary(
+              user.id,
+              !forceRefresh,
+            )
+          : await CoachSummaryService.generateWeeklySummary(
+              user.id,
+              !forceRefresh,
+            );
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        content: summary.content,
-        timeframe,
-        tokenUsage: {
-          prompt: summary.promptTokens,
-          completion: summary.completionTokens,
-          total: summary.totalTokens,
+      return NextResponse.json({
+        success: true,
+        data: {
+          content: summary.content,
+          timeframe,
+          tokenUsage: {
+            prompt: summary.promptTokens,
+            completion: summary.completionTokens,
+            total: summary.totalTokens,
+          },
         },
-      },
-    });
+      });
+    } catch {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "No cached AI content. Enable AI insights to generate on device.",
+        },
+        { status: 404 },
+      );
+    }
   } catch (error: any) {
     console.error("Error generating summary:", error);
 

@@ -36,6 +36,15 @@ export const coachApi = {
     const response = await fetch(`/api/coach/summary?${params}`);
     const data: ApiResponse<CoachSummaryResponse> = await response.json();
 
+    if (response.status === 404) {
+      return {
+        content:
+          "AI insights are off. Enable AI in Settings to generate on device.",
+        timeframe,
+        tokenUsage: { prompt: 0, completion: 0, total: 0 },
+      };
+    }
+
     if (!response.ok || !data.success) {
       throw new Error(data.error || "Failed to get summary");
     }
@@ -58,6 +67,15 @@ export const coachApi = {
     const url = `/api/coach/motivation?${params}`;
     const response = await fetch(url);
     const data: ApiResponse<CoachMotivationResponse> = await response.json();
+
+    if (response.status === 404) {
+      return {
+        content:
+          "AI insights are off. Enable AI in Settings to generate on device.",
+        habitId: habitId ?? null,
+        tokenUsage: { prompt: 0, completion: 0, total: 0 },
+      };
+    }
 
     if (!response.ok || !data.success) {
       throw new Error(data.error || "Failed to get motivation");

@@ -1,13 +1,17 @@
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from './auth';
-import type { Session } from 'next-auth';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "./auth";
+import type { Session } from "next-auth";
 
 /**
  * Get the current session on the server
  * Use in Server Components and API routes
  */
 export async function getSession(): Promise<Session | null> {
-  return await getServerSession(authOptions);
+  try {
+    return await getServerSession(authOptions);
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -16,12 +20,7 @@ export async function getSession(): Promise<Session | null> {
  */
 export async function getCurrentUser() {
   const session = await getSession();
-
-  if (!session?.user) {
-    throw new Error('Not authenticated');
-  }
-
-  return session.user;
+  return session?.user ?? null;
 }
 
 /**
@@ -31,4 +30,3 @@ export async function isAuthenticated(): Promise<boolean> {
   const session = await getSession();
   return !!session?.user;
 }
-

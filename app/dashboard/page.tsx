@@ -432,6 +432,8 @@ const AISection = styled.div`
 
 const ChartSection = styled.div`
   margin-top: ${({ theme }) => theme.spacing.xl};
+  /* Prevent Recharts width=-1 when inside grid */
+  min-width: 0;
 `;
 
 const ErrorMessage = styled.div`

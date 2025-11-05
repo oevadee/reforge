@@ -47,22 +47,7 @@ export class CoachMotivationService {
       },
     };
 
-    const messages = PromptBuilder.buildMotivation(context);
-    const response = await AIService.generateCompletion(messages);
-
-    // Cache the response for 24 hours
-    await AiCoachCacheRepository.set(
-      userId,
-      "MOTIVATION",
-      response.content,
-      {
-        model: response.model,
-        tokenUsage: response.totalTokens,
-      },
-      24,
-    );
-
-    return response;
+    throw new Error("AI content not available in cache");
   }
 
   /**
@@ -81,13 +66,6 @@ export class CoachMotivationService {
       throw new Error("Habit not found");
     }
 
-    const messages = PromptBuilder.buildHabitInsight(
-      habitWithStats.name,
-      habitWithStats.totalCompletions,
-      habitWithStats.currentStreak,
-      habitWithStats.completionRate,
-    );
-
-    return await AIService.generateCompletion(messages);
+    throw new Error("AI content not available in cache");
   }
 }
