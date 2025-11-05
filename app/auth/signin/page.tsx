@@ -1,25 +1,28 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import styled from '@emotion/styled';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { signIn } from 'next-auth/react';
-import { Input } from '@/components/forms/Input';
-import { Button } from '@/components/forms/Button';
-import { MainContent } from '@/components/MainContent';
-import { loginSchema, type LoginFormData } from '@/types/forms';
+import { useState } from "react";
+import styled from "@emotion/styled";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { Input } from "@/components/forms/Input";
+import { Button } from "@/components/forms/Button";
+import { DemoLogin } from "@/components/DemoLogin";
+import { MainContent } from "@/components/MainContent";
+import { loginSchema, type LoginFormData } from "@/types/forms";
 
 export default function SignInPage(): React.JSX.Element {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [formData, setFormData] = useState<LoginFormData>({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
-  const [errors, setErrors] = useState<Partial<Record<keyof LoginFormData, string>>>({});
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof LoginFormData, string>>
+  >({});
   const [isLoading, setIsLoading] = useState(false);
-  const [generalError, setGeneralError] = useState<string>('');
+  const [generalError, setGeneralError] = useState<string>("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
@@ -32,7 +35,7 @@ export default function SignInPage(): React.JSX.Element {
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
-    setGeneralError('');
+    setGeneralError("");
     setErrors({});
 
     // Validate form
@@ -49,22 +52,22 @@ export default function SignInPage(): React.JSX.Element {
     setIsLoading(true);
 
     try {
-      const response = await signIn('credentials', {
+      const response = await signIn("credentials", {
         email: formData.email,
         password: formData.password,
         redirect: false,
       });
 
       if (response?.error) {
-        setGeneralError('Invalid email or password');
+        setGeneralError("Invalid email or password");
       } else {
-        const callbackUrl = searchParams.get('callbackUrl') ?? '/dashboard';
+        const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
         router.push(callbackUrl);
         router.refresh();
       }
     } catch (error) {
-      setGeneralError('An unexpected error occurred');
-      console.error('Sign in error:', error);
+      setGeneralError("An unexpected error occurred");
+      console.error("Sign in error:", error);
     } finally {
       setIsLoading(false);
     }
@@ -115,11 +118,13 @@ export default function SignInPage(): React.JSX.Element {
         </Form>
 
         <FormFooter>
-          Don't have an account?{' '}
+          Don't have an account?{" "}
           <Link href="/auth/signup">
             <FooterLink>Sign up</FooterLink>
           </Link>
         </FormFooter>
+
+        <DemoLogin />
       </FormContainer>
     </MainContent>
   );
@@ -183,4 +188,3 @@ const FooterLink = styled.span`
     text-decoration: underline;
   }
 `;
-
