@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import styled from "@emotion/styled";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -25,6 +26,7 @@ export function Navigation(): React.JSX.Element {
   const { user, isAuthenticated, signOut } = useAuth();
   const { mode, toggleTheme } = useTheme();
   const pathname = usePathname();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const visibleItems = NAV_ITEMS.filter((item) => {
     // Hide dashboard link when authenticated (logo serves as dashboard link)
@@ -50,12 +52,21 @@ export function Navigation(): React.JSX.Element {
           </Link>
         </Logo>
 
-        <NavLinks>
+        <MobileMenuButton
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle menu"
+        >
+          {mobileMenuOpen ? "✕" : "☰"}
+        </MobileMenuButton>
+
+        <NavLinks $isOpen={mobileMenuOpen}>
           {visibleItems.map((item) => {
             const isActive = pathname === item.href;
             return (
               <NavLinkWrapper key={item.href} $isActive={isActive}>
-                <Link href={item.href}>{item.label}</Link>
+                <Link href={item.href} onClick={() => setMobileMenuOpen(false)}>
+                  {item.label}
+                </Link>
               </NavLinkWrapper>
             );
           })}
@@ -129,15 +140,44 @@ const LogoText = styled.span`
   gap: ${({ theme }) => theme.spacing.xs};
 `;
 
-const NavLinks = styled.div`
+const MobileMenuButton = styled.button`
+  display: none;
+  font-size: ${({ theme }) => theme.typography.fontSize.xl};
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: ${({ theme }) => theme.colors.text.primary};
+  padding: ${({ theme }) => theme.spacing.sm};
+  min-width: 44px;
+  min-height: 44px;
+
+  @media (max-width: 768px) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+`;
+
+const NavLinks = styled.div<{ $isOpen?: boolean }>`
   display: flex;
   gap: ${({ theme }) => theme.spacing.md};
   flex: 1;
 
   @media (max-width: 768px) {
-    width: 100%;
-    order: 3;
+    position: fixed;
+    top: 70px;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    background-color: ${({ theme }) => theme.colors.surface};
+    border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+    padding: ${({ theme }) => theme.spacing.lg};
     gap: ${({ theme }) => theme.spacing.sm};
+    transform: translateY(${({ $isOpen }) => ($isOpen ? "0" : "-100%")});
+    opacity: ${({ $isOpen }) => ($isOpen ? 1 : 0)};
+    transition: all ${({ theme }) => theme.transitions.normal};
+    z-index: 99;
+    pointer-events: ${({ $isOpen }) => ($isOpen ? "all" : "none")};
   }
 `;
 
