@@ -160,4 +160,69 @@ Thoughts: ${reflectionText}
       { role: "user", content: userMessage },
     ];
   }
+
+  /**
+   * Build daily summary with mood context
+   */
+  static buildDailySummaryWithMood(
+    context: AIPromptContext & { mood?: string; reflection?: string },
+  ): ChatCompletionMessageParam[] {
+    const { habitData, userData, mood, reflection } = context;
+
+    let userMessage = `${userData?.name || "User"} has ${habitData?.length || 0} active habits.\n\n`;
+
+    if (mood) {
+      userMessage += `Today's mood: ${mood}\n`;
+    }
+
+    if (reflection) {
+      userMessage += `Today's reflection: "${reflection}"\n\n`;
+    }
+
+    if (habitData && habitData.length > 0) {
+      userMessage += `Habit progress:\n${habitData
+        .map(
+          (h) =>
+            `- ${h.name}: ${h.completions} completions, ${h.streak} day streak`,
+        )
+        .join("\n")}\n\n`;
+    }
+
+    userMessage += `Provide a brief summary that:
+1. Acknowledges their mood
+2. Connects it to their habits (if applicable)
+3. Offers encouragement based on their progress`;
+
+    return [
+      { role: "system", content: this.SYSTEM_PROMPT },
+      { role: "user", content: userMessage },
+    ];
+  }
+
+  /**
+   * Build weekly reflection analysis
+   */
+  static buildWeeklyReflectionAnalysis(
+    reflections: Array<{ date: string; mood: string; content?: string }>,
+    habitData: AIPromptContext["habitData"],
+  ): ChatCompletionMessageParam[] {
+    const userMessage = `
+Analyze this week's reflections:
+
+${reflections.map((r) => `${r.date}: Mood ${r.mood}${r.content ? ` - "${r.content}"` : ""}`).join("\n")}
+
+Habit performance:
+${habitData?.map((h) => `- ${h.name}: ${h.completions} completions`).join("\n") || "No habits tracked"}
+
+Provide insights about:
+1. Mood patterns throughout the week
+2. Correlation between mood and habit completion
+3. One actionable suggestion for improvement
+    `.trim();
+
+    return [
+      { role: "system", content: this.SYSTEM_PROMPT },
+      { role: "user", content: userMessage },
+    ];
+  }
 }
