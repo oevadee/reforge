@@ -1,4 +1,4 @@
-import { openai, AI_CONFIG } from "@/lib/openai";
+import { aiClient, AI_CONFIG } from "@/lib/ai";
 import { AIResponse, AIError } from "@/types/ai";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 
@@ -10,7 +10,7 @@ export class AIService {
     messages: ChatCompletionMessageParam[],
   ): Promise<AIResponse> {
     try {
-      const completion = await openai.chat.completions.create({
+      const completion = await aiClient.chat.completions.create({
         model: AI_CONFIG.model,
         messages,
         temperature: AI_CONFIG.temperature,
@@ -30,7 +30,7 @@ export class AIService {
         totalTokens: completion.usage?.total_tokens ?? 0,
       };
     } catch (error: any) {
-      console.error("OpenAI API error:", error);
+      console.error("AI API error:", error);
 
       const aiError: AIError = {
         message: error.message || "AI generation failed",
@@ -47,10 +47,10 @@ export class AIService {
    */
   static async validateAPIKey(): Promise<boolean> {
     try {
-      await openai.models.list();
+      await aiClient.models.list();
       return true;
     } catch (error) {
-      console.error("Invalid OpenAI API key");
+      console.error("Invalid AI API key");
       return false;
     }
   }
