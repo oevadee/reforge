@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import styled from "@emotion/styled";
+import { motion } from "framer-motion";
 import { LogStatus } from "@prisma/client";
 import { MainContent } from "@/components/MainContent";
 import { CheckInCard } from "@/components/checkin/CheckInCard";
@@ -10,6 +11,7 @@ import { checkinApi } from "@/lib/api/checkin";
 import { habitLogsApi } from "@/lib/api/habit-logs";
 import { getTodayISO, formatDate } from "@/lib/utils/date";
 import { DailyCheckInHabit } from "@/types/habit-logs";
+import { staggerChildren, slideUp } from "@/lib/animations";
 
 export default function CheckInPage(): React.JSX.Element {
   const [habits, setHabits] = useState<DailyCheckInHabit[]>([]);
@@ -91,14 +93,20 @@ export default function CheckInPage(): React.JSX.Element {
           <EmptyText>No habits scheduled for today!</EmptyText>
         </EmptyState>
       ) : (
-        <HabitsGrid>
+        <HabitsGrid
+          as={motion.div}
+          variants={staggerChildren}
+          initial="hidden"
+          animate="visible"
+        >
           {habits.map((habit) => (
-            <CheckInCard
-              key={habit.id}
-              habit={habit}
-              onLog={handleLog}
-              isLoading={loggingHabitId === habit.id}
-            />
+            <motion.div key={habit.id} variants={slideUp}>
+              <CheckInCard
+                habit={habit}
+                onLog={handleLog}
+                isLoading={loggingHabitId === habit.id}
+              />
+            </motion.div>
           ))}
         </HabitsGrid>
       )}
