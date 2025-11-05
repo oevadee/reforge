@@ -22,6 +22,7 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
       where: { id: user.id },
       select: {
         aiEnabled: true,
+        onboardingCompleted: true,
       },
     });
 

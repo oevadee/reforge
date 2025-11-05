@@ -11,6 +11,7 @@ import { CompletionChart } from "@/components/charts/CompletionChart";
 import { CoachMessage } from "@/components/coach/CoachMessage";
 import { Loading } from "@/components/Loading";
 import { Button } from "@/components/forms/Button";
+import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
 import { DashboardData } from "@/types/dashboard";
 import { ChartData } from "@/types/charts";
 import { ApiResponse } from "@/types/forms";
@@ -32,6 +33,7 @@ export default function DashboardPage(): React.JSX.Element {
   const [motivation, setMotivation] = useState<string>("");
   const [isLoadingSummary, setIsLoadingSummary] = useState(true);
   const [isLoadingMotivation, setIsLoadingMotivation] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     // Redirect if not authenticated
@@ -88,10 +90,26 @@ export default function DashboardPage(): React.JSX.Element {
     try {
       const data = await settingsApi.get();
       setSettings(data);
+      // Show onboarding if not completed
+      if (!data.onboardingCompleted) {
+        setShowOnboarding(true);
+      }
     } catch (error) {
       console.error("Failed to load settings:", error);
       // Default to AI enabled if settings fail to load
       setSettings({ aiEnabled: true });
+    }
+  };
+
+  const handleOnboardingComplete = async (): Promise<void> => {
+    try {
+      await fetch("/api/onboarding/complete", { method: "POST" });
+      setShowOnboarding(false);
+      setSettings((prev) =>
+        prev ? { ...prev, onboardingCompleted: true } : null,
+      );
+    } catch (error) {
+      console.error("Failed to complete onboarding:", error);
     }
   };
 
@@ -143,6 +161,11 @@ export default function DashboardPage(): React.JSX.Element {
 
   return (
     <MainContent>
+      <OnboardingModal
+        isOpen={showOnboarding}
+        onComplete={handleOnboardingComplete}
+      />
+
       <Header>
         <WelcomeSection>
           <WelcomeTitle>

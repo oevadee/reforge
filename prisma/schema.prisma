@@ -22,7 +22,8 @@ model User {
   updatedAt     DateTime  @updatedAt
 
   // Settings
-  aiEnabled     Boolean   @default(true)
+  aiEnabled            Boolean   @default(true)
+  onboardingCompleted  Boolean   @default(false)
 
   // Relations
   accounts      Account[]
