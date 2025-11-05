@@ -314,9 +314,12 @@ const WelcomeSubtitle = styled.p`
 const QuickActions = styled.div`
   display: flex;
   gap: ${({ theme }) => theme.spacing.sm};
+  justify-content: flex-end;
 
   @media (max-width: 768px) {
     width: 100%;
+    justify-content: stretch;
+    margin-top: ${({ theme }) => theme.spacing.md};
 
     a,
     button {
@@ -336,9 +339,11 @@ const ContentGrid = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: ${({ theme }) => theme.spacing.xl};
+  margin-bottom: ${({ theme }) => theme.spacing.xxl};
 
   @media (max-width: 1024px) {
     grid-template-columns: 1fr;
+    gap: ${({ theme }) => theme.spacing.lg};
   }
 `;
 
