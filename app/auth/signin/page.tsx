@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import styled from "@emotion/styled";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -11,7 +11,7 @@ import { DemoLogin } from "@/components/DemoLogin";
 import { MainContent } from "@/components/MainContent";
 import { loginSchema, type LoginFormData } from "@/types/forms";
 
-export default function SignInPage(): React.JSX.Element {
+function SignInForm(): React.JSX.Element {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [formData, setFormData] = useState<LoginFormData>({
@@ -74,58 +74,66 @@ export default function SignInPage(): React.JSX.Element {
   };
 
   return (
+    <FormContainer>
+      <FormHeader>
+        <FormTitle>Welcome Back</FormTitle>
+        <FormSubtitle>Sign in to continue your habit journey</FormSubtitle>
+      </FormHeader>
+
+      <Form onSubmit={handleSubmit}>
+        {generalError && <ErrorAlert>{generalError}</ErrorAlert>}
+
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          label="Email"
+          placeholder="you@example.com"
+          value={formData.email}
+          onChange={handleChange}
+          error={errors.email}
+          disabled={isLoading}
+          autoComplete="email"
+          required
+        />
+
+        <Input
+          id="password"
+          name="password"
+          type="password"
+          label="Password"
+          placeholder="••••••••"
+          value={formData.password}
+          onChange={handleChange}
+          error={errors.password}
+          disabled={isLoading}
+          autoComplete="current-password"
+          required
+        />
+
+        <Button type="submit" fullWidth isLoading={isLoading}>
+          Sign In
+        </Button>
+      </Form>
+
+      <FormFooter>
+        Don't have an account?{" "}
+        <Link href="/auth/signup">
+          <FooterLink>Sign up</FooterLink>
+        </Link>
+      </FormFooter>
+
+      <DemoLogin />
+    </FormContainer>
+  );
+}
+
+export default function SignInPage(): React.JSX.Element {
+  return (
     <MainContent maxWidth="sm">
-      <FormContainer>
-        <FormHeader>
-          <FormTitle>Welcome Back</FormTitle>
-          <FormSubtitle>Sign in to continue your habit journey</FormSubtitle>
-        </FormHeader>
-
-        <Form onSubmit={handleSubmit}>
-          {generalError && <ErrorAlert>{generalError}</ErrorAlert>}
-
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            label="Email"
-            placeholder="you@example.com"
-            value={formData.email}
-            onChange={handleChange}
-            error={errors.email}
-            disabled={isLoading}
-            autoComplete="email"
-            required
-          />
-
-          <Input
-            id="password"
-            name="password"
-            type="password"
-            label="Password"
-            placeholder="••••••••"
-            value={formData.password}
-            onChange={handleChange}
-            error={errors.password}
-            disabled={isLoading}
-            autoComplete="current-password"
-            required
-          />
-
-          <Button type="submit" fullWidth isLoading={isLoading}>
-            Sign In
-          </Button>
-        </Form>
-
-        <FormFooter>
-          Don't have an account?{" "}
-          <Link href="/auth/signup">
-            <FooterLink>Sign up</FooterLink>
-          </Link>
-        </FormFooter>
-
-        <DemoLogin />
-      </FormContainer>
+      <Suspense fallback={<div>Loading...</div>}>
+        <SignInForm />
+      </Suspense>
     </MainContent>
   );
 }

@@ -159,10 +159,10 @@ export default function DashboardPage(): React.JSX.Element {
       console.info("[Dashboard] generateSummary: start");
       setIsLoadingSummary(true);
       // Initialize WebAI if not already initialized
-      const { initialized, error } = await WebAI.initialize();
-      if (!initialized || error) {
-        console.error("[Dashboard] generateSummary: init error", error);
-        throw new Error(error || "Failed to initialize WebAI");
+      const { initialized, reason } = await WebAI.initialize();
+      if (!initialized) {
+        console.error("[Dashboard] generateSummary: init error", reason);
+        throw new Error(reason || "Failed to initialize WebAI");
       }
 
       // Require WebGPU for a smooth experience
@@ -208,10 +208,10 @@ export default function DashboardPage(): React.JSX.Element {
       console.info("[Dashboard] generateMotivation: start");
       setIsLoadingMotivation(true);
       // Initialize WebAI if not already initialized
-      const { initialized, error } = await WebAI.initialize();
-      if (!initialized || error) {
-        console.error("[Dashboard] generateMotivation: init error", error);
-        throw new Error(error || "Failed to initialize WebAI");
+      const { initialized, reason } = await WebAI.initialize();
+      if (!initialized) {
+        console.error("[Dashboard] generateMotivation: init error", reason);
+        throw new Error(reason || "Failed to initialize WebAI");
       }
 
       // Require WebGPU for a smooth experience

@@ -1,8 +1,5 @@
-import { AIService } from "./ai.service";
-import { PromptBuilder } from "@/lib/utils/prompts";
 import { HabitStatsService } from "./habit-stats.service";
-import { prisma } from "@/lib/prisma";
-import { AIResponse, AIPromptContext } from "@/types/ai";
+import { AIResponse } from "@/types/ai";
 import { AiCoachCacheRepository } from "@/lib/repositories/ai-coach-cache.repository";
 
 export class CoachMotivationService {
@@ -27,25 +24,8 @@ export class CoachMotivationService {
       }
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { name: true },
-    });
-
-    const habits = await HabitStatsService.getAllHabitsWithStats(userId);
-
-    const context: AIPromptContext = {
-      habitData: habits.map((h) => ({
-        name: h.name,
-        type: h.type,
-        completions: h.totalCompletions,
-        streak: h.currentStreak,
-      })),
-      userData: {
-        name: user?.name || "User",
-        totalHabits: habits.length,
-      },
-    };
+    // Context building removed - server-side AI generation disabled
+    // All coach content is now generated client-side via WebAI
 
     throw new Error("AI content not available in cache");
   }

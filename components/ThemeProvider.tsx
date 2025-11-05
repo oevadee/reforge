@@ -34,22 +34,25 @@ export function ThemeProvider({
 
     if (savedTheme) {
       setMode(savedTheme);
-    } else {
-      // Detect system preference
-      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-      setMode(mediaQuery.matches ? "dark" : "light");
-
-      // Listen for system theme changes
-      const handler = (e: MediaQueryListEvent): void => {
-        // Only update if user hasn't set a manual preference
-        if (!localStorage.getItem("theme")) {
-          setMode(e.matches ? "dark" : "light");
-        }
+      return () => {
+        // No cleanup needed
       };
-
-      mediaQuery.addEventListener("change", handler);
-      return () => mediaQuery.removeEventListener("change", handler);
     }
+
+    // Detect system preference
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    setMode(mediaQuery.matches ? "dark" : "light");
+
+    // Listen for system theme changes
+    const handler = (e: MediaQueryListEvent): void => {
+      // Only update if user hasn't set a manual preference
+      if (!localStorage.getItem("theme")) {
+        setMode(e.matches ? "dark" : "light");
+      }
+    };
+
+    mediaQuery.addEventListener("change", handler);
+    return () => mediaQuery.removeEventListener("change", handler);
   }, []);
 
   const toggleTheme = (): void => {

@@ -93,22 +93,23 @@ export default function CheckInPage(): React.JSX.Element {
           <EmptyText>No habits scheduled for today!</EmptyText>
         </EmptyState>
       ) : (
-        <HabitsGrid
-          as={motion.div}
+        <motion.div
           variants={staggerChildren}
           initial="hidden"
           animate="visible"
         >
-          {habits.map((habit) => (
-            <motion.div key={habit.id} variants={slideUp}>
-              <CheckInCard
-                habit={habit}
-                onLog={handleLog}
-                isLoading={loggingHabitId === habit.id}
-              />
-            </motion.div>
-          ))}
-        </HabitsGrid>
+          <HabitsGrid>
+            {habits.map((habit) => (
+              <motion.div key={habit.id} variants={slideUp}>
+                <CheckInCard
+                  habit={habit}
+                  onLog={handleLog}
+                  isLoading={loggingHabitId === habit.id}
+                />
+              </motion.div>
+            ))}
+          </HabitsGrid>
+        </motion.div>
       )}
     </MainContent>
   );

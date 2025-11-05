@@ -242,7 +242,7 @@ const WarningText = styled.div`
 const ModelInfo = styled.div`
   margin-top: ${({ theme }) => theme.spacing.xs};
   font-size: ${({ theme }) => theme.typography.fontSize.xs};
-  color: ${({ theme }) => theme.colors.text.tertiary};
+  color: ${({ theme }) => theme.colors.text.secondary};
   font-family: monospace;
 `;
 

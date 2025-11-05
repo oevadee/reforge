@@ -132,93 +132,95 @@ export function Navigation(): React.JSX.Element {
       <AnimatePresence>
         {mobileMenuOpen && (
           <>
-            <Backdrop
-              as={motion.div}
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setMobileMenuOpen(false)}
-            />
-            <MobileDrawer
-              as={motion.div}
+            >
+              <Backdrop />
+            </motion.div>
+            <motion.div
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
             >
-              {/* User Profile Section */}
-              {isAuthenticated && (
-                <UserProfile>
-                  <UserAvatar>{getInitials(user?.name)}</UserAvatar>
-                  <UserDetails>
-                    <UserName>{user?.name ?? "User"}</UserName>
-                    <UserEmail>{user?.email}</UserEmail>
-                  </UserDetails>
-                </UserProfile>
-              )}
-
-              {/* Navigation Links */}
-              <MobileNavLinks>
-                {visibleItems.map((item, index) => {
-                  const isActive = pathname === item.href;
-                  return (
-                    <MobileNavLink
-                      key={item.href}
-                      $isActive={isActive}
-                      as={motion.div}
-                      initial={{ opacity: 0, x: 50 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                    >
-                      <Link href={item.href}>
-                        <MobileNavLinkContent $isActive={isActive}>
-                          <NavIcon>{item.icon}</NavIcon>
-                          <span>{item.label}</span>
-                        </MobileNavLinkContent>
-                      </Link>
-                    </MobileNavLink>
-                  );
-                })}
-              </MobileNavLinks>
-
-              {/* Mobile Actions */}
-              <MobileActions>
-                <ThemeToggleRow onClick={toggleTheme}>
-                  <ThemeLabel>
-                    <span>🎨</span>
-                    <span>Theme</span>
-                  </ThemeLabel>
-                  <ThemeToggleSwitch $mode={mode}>
-                    <ThemeSwitchIcon $mode={mode}>
-                      {mode === "light" ? "☀️" : "🌙"}
-                    </ThemeSwitchIcon>
-                  </ThemeToggleSwitch>
-                </ThemeToggleRow>
-
-                {isAuthenticated ? (
-                  <SignOutButtonMobile onClick={handleSignOut}>
-                    <span>🚪</span>
-                    <span>Sign Out</span>
-                  </SignOutButtonMobile>
-                ) : (
-                  <MobileAuthButtons>
-                    <Link href="/auth/signin">
-                      <AuthButton onClick={() => setMobileMenuOpen(false)}>
-                        Sign In
-                      </AuthButton>
-                    </Link>
-                    <Link href="/auth/signup">
-                      <AuthButton
-                        $primary
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Sign Up
-                      </AuthButton>
-                    </Link>
-                  </MobileAuthButtons>
+              <MobileDrawer>
+                {/* User Profile Section */}
+                {isAuthenticated && (
+                  <UserProfile>
+                    <UserAvatar>{getInitials(user?.name)}</UserAvatar>
+                    <UserDetails>
+                      <UserName>{user?.name ?? "User"}</UserName>
+                      <UserEmail>{user?.email}</UserEmail>
+                    </UserDetails>
+                  </UserProfile>
                 )}
-              </MobileActions>
-            </MobileDrawer>
+
+                {/* Navigation Links */}
+                <MobileNavLinks>
+                  {visibleItems.map((item, index) => {
+                    const isActive = pathname === item.href;
+                    return (
+                      <motion.div
+                        key={item.href}
+                        initial={{ opacity: 0, x: 50 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                      >
+                        <MobileNavLink $isActive={isActive}>
+                          <Link href={item.href}>
+                            <MobileNavLinkContent $isActive={isActive}>
+                              <NavIcon>{item.icon}</NavIcon>
+                              <span>{item.label}</span>
+                            </MobileNavLinkContent>
+                          </Link>
+                        </MobileNavLink>
+                      </motion.div>
+                    );
+                  })}
+                </MobileNavLinks>
+
+                {/* Mobile Actions */}
+                <MobileActions>
+                  <ThemeToggleRow onClick={toggleTheme}>
+                    <ThemeLabel>
+                      <span>🎨</span>
+                      <span>Theme</span>
+                    </ThemeLabel>
+                    <ThemeToggleSwitch $mode={mode}>
+                      <ThemeSwitchIcon $mode={mode}>
+                        {mode === "light" ? "☀️" : "🌙"}
+                      </ThemeSwitchIcon>
+                    </ThemeToggleSwitch>
+                  </ThemeToggleRow>
+
+                  {isAuthenticated ? (
+                    <SignOutButtonMobile onClick={handleSignOut}>
+                      <span>🚪</span>
+                      <span>Sign Out</span>
+                    </SignOutButtonMobile>
+                  ) : (
+                    <MobileAuthButtons>
+                      <Link href="/auth/signin">
+                        <AuthButton onClick={() => setMobileMenuOpen(false)}>
+                          Sign In
+                        </AuthButton>
+                      </Link>
+                      <Link href="/auth/signup">
+                        <AuthButton
+                          $primary
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          Sign Up
+                        </AuthButton>
+                      </Link>
+                    </MobileAuthButtons>
+                  )}
+                </MobileActions>
+              </MobileDrawer>
+            </motion.div>
           </>
         )}
       </AnimatePresence>
