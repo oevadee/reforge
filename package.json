@@ -14,7 +14,11 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "prepare": "husky",
-    "postinstall": "sh -c 'if [ -n \"$DATABASE_URL\" ]; then prisma generate; else echo \"Skipping prisma generate: DATABASE_URL not set\"; fi'"
+    "postinstall": "sh -c 'if [ -n \"$DATABASE_URL\" ]; then prisma generate; else echo \"Skipping prisma generate: DATABASE_URL not set\"; fi'",
+    "db:migrate": "prisma migrate deploy",
+    "db:migrate:direct": "./scripts/migrate.sh",
+    "db:seed": "prisma db seed",
+    "db:studio": "prisma studio"
   },
   "lint-staged": {
     "*.{ts,tsx,json,md}": [
