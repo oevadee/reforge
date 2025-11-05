@@ -20,7 +20,10 @@ export async function getSession(): Promise<Session | null> {
  */
 export async function getCurrentUser() {
   const session = await getSession();
-  return session?.user ?? null;
+  if (!session?.user) {
+    throw new Error("Unauthorized");
+  }
+  return session.user;
 }
 
 /**

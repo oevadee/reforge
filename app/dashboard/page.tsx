@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import styled from "@emotion/styled";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -18,6 +18,8 @@ import { ApiResponse } from "@/types/forms";
 import { UserSettings } from "@/types/settings";
 import { coachApi } from "@/lib/api/coach";
 import { settingsApi } from "@/lib/api/settings";
+import { WebAI } from "@/lib/webai/client";
+import { WebAICoach } from "@/lib/webai/coach";
 import Link from "next/link";
 
 export default function DashboardPage(): React.JSX.Element {
@@ -34,16 +36,19 @@ export default function DashboardPage(): React.JSX.Element {
   const [isLoadingSummary, setIsLoadingSummary] = useState(true);
   const [isLoadingMotivation, setIsLoadingMotivation] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const aiLoadedRef = useRef(false);
 
   useEffect(() => {
     // Redirect if not authenticated
     if (status === "unauthenticated") {
+      console.warn("[Dashboard] unauthenticated → redirect signin");
       router.push("/auth/signin");
       return;
     }
 
     // Only load data if user is authenticated
     if (status === "authenticated") {
+      console.info("[Dashboard] authenticated → load data");
       loadDashboardData();
       loadChartData();
       loadSettings();
@@ -51,8 +56,10 @@ export default function DashboardPage(): React.JSX.Element {
   }, [status, router]);
 
   useEffect(() => {
-    // Only load AI messages if AI is enabled
-    if (settings?.aiEnabled) {
+    // Only load AI messages if AI is enabled and not already loaded (avoid StrictMode double-call)
+    if (settings?.aiEnabled && !aiLoadedRef.current) {
+      console.info("[Dashboard] AI enabled → loadAIMessages once");
+      aiLoadedRef.current = true;
       loadAIMessages();
     }
   }, [settings]);
@@ -60,6 +67,7 @@ export default function DashboardPage(): React.JSX.Element {
   const loadDashboardData = async (): Promise<void> => {
     try {
       setIsLoading(true);
+      console.info("[Dashboard] loadDashboardData: start");
       const response = await fetch("/api/dashboard");
       const data: ApiResponse<DashboardData> = await response.json();
 
@@ -67,14 +75,16 @@ export default function DashboardPage(): React.JSX.Element {
         setDashboardData(data.data);
       }
     } catch (error) {
-      console.error("Failed to load dashboard data:", error);
+      console.error("[Dashboard] loadDashboardData: error", error);
     } finally {
+      console.info("[Dashboard] loadDashboardData: done");
       setIsLoading(false);
     }
   };
 
   const loadChartData = async (): Promise<void> => {
     try {
+      console.info("[Dashboard] loadChartData: start");
       const response = await fetch("/api/charts");
       const data: ApiResponse<ChartData> = await response.json();
 
@@ -82,12 +92,13 @@ export default function DashboardPage(): React.JSX.Element {
         setChartData(data.data);
       }
     } catch (error) {
-      console.error("Failed to load chart data:", error);
+      console.error("[Dashboard] loadChartData: error", error);
     }
   };
 
   const loadSettings = async (): Promise<void> => {
     try {
+      console.info("[Dashboard] loadSettings: start");
       const data = await settingsApi.get();
       setSettings(data);
       // Show onboarding if not completed
@@ -95,7 +106,7 @@ export default function DashboardPage(): React.JSX.Element {
         setShowOnboarding(true);
       }
     } catch (error) {
-      console.error("Failed to load settings:", error);
+      console.error("[Dashboard] loadSettings: error", error);
       // Default to AI enabled if settings fail to load
       setSettings({ aiEnabled: true });
     }
@@ -114,29 +125,129 @@ export default function DashboardPage(): React.JSX.Element {
   };
 
   const loadAIMessages = async (refresh: boolean = false): Promise<void> => {
-    // Load summary
+    console.info("[Dashboard] loadAIMessages: start", { refresh });
+    // Load summary (from cache or placeholder)
     try {
       setIsLoadingSummary(true);
       const summaryData = await coachApi.getSummary("daily", refresh);
       setDailySummary(summaryData.content);
     } catch (error) {
-      console.error("Failed to load summary:", error);
+      console.error("[Dashboard] loadAIMessages: summary error", error);
       setDailySummary("Unable to load daily summary. Please try again later.");
     } finally {
       setIsLoadingSummary(false);
     }
 
-    // Load motivation
+    // Load motivation (from cache or placeholder)
     try {
       setIsLoadingMotivation(true);
       const motivationData = await coachApi.getMotivation(undefined, refresh);
       setMotivation(motivationData.content);
     } catch (error) {
-      console.error("Failed to load motivation:", error);
+      console.error("[Dashboard] loadAIMessages: motivation error", error);
       setMotivation(
         "Unable to load motivation message. Please try again later.",
       );
     } finally {
+      setIsLoadingMotivation(false);
+    }
+    console.info("[Dashboard] loadAIMessages: done");
+  };
+
+  const generateSummary = async (): Promise<void> => {
+    try {
+      console.info("[Dashboard] generateSummary: start");
+      setIsLoadingSummary(true);
+      // Initialize WebAI if not already initialized
+      const { initialized, error } = await WebAI.initialize();
+      if (!initialized || error) {
+        console.error("[Dashboard] generateSummary: init error", error);
+        throw new Error(error || "Failed to initialize WebAI");
+      }
+
+      // Require WebGPU for a smooth experience
+      if (typeof navigator === "undefined" || !("gpu" in navigator)) {
+        throw new Error(
+          "WebGPU not available. Please use a browser that supports WebGPU (Chrome/Edge).",
+        );
+      }
+
+      // Build context from dashboard data
+      const context = {
+        userId: session?.user?.id || "",
+        stats: dashboardData?.stats || null,
+        recentActivity: dashboardData?.recentActivity || [],
+        habits: [],
+        userData: {
+          name: session?.user?.name || "User",
+        },
+      };
+
+      // Generate summary using client-side AI (short output to avoid long blocking)
+      const content = await WebAICoach.generateDailySummary({
+        ...context,
+        maxTokens: 40,
+      } as any);
+      console.info("[Dashboard] generateSummary: generated", {
+        length: content.length,
+      });
+      setDailySummary(content);
+    } catch (error: any) {
+      console.error("[Dashboard] generateSummary: error", error);
+      setDailySummary(
+        `Failed to generate summary: ${error.message || "Unknown error"}`,
+      );
+    } finally {
+      console.info("[Dashboard] generateSummary: done");
+      setIsLoadingSummary(false);
+    }
+  };
+
+  const generateMotivation = async (): Promise<void> => {
+    try {
+      console.info("[Dashboard] generateMotivation: start");
+      setIsLoadingMotivation(true);
+      // Initialize WebAI if not already initialized
+      const { initialized, error } = await WebAI.initialize();
+      if (!initialized || error) {
+        console.error("[Dashboard] generateMotivation: init error", error);
+        throw new Error(error || "Failed to initialize WebAI");
+      }
+
+      // Require WebGPU for a smooth experience
+      if (typeof navigator === "undefined" || !("gpu" in navigator)) {
+        throw new Error(
+          "WebGPU not available. Please use a browser that supports WebGPU (Chrome/Edge).",
+        );
+      }
+
+      // Build context from dashboard data
+      const context = {
+        userId: session?.user?.id || "",
+        stats: dashboardData?.stats || null,
+        recentActivity: dashboardData?.recentActivity || [],
+        habits: [],
+        userData: {
+          name: session?.user?.name || "User",
+        },
+      };
+
+      // Generate motivation using client-side AI (short output to avoid long blocking)
+      const content = await WebAICoach.generateMotivation({
+        ...context,
+        maxTokens: 32,
+      } as any);
+      console.info("[Dashboard] generateMotivation: generated", {
+        length: content.length,
+      });
+      setMotivation(content);
+    } catch (error: any) {
+      console.error("[Dashboard] generateMotivation: error", error);
+      setMotivation(
+        `Failed to generate motivation: ${error.message || "Unknown error"}`,
+      );
+    } finally {
+      console.info("[Dashboard] generateMotivation: done");
       setIsLoadingMotivation(false);
     }
   };
@@ -261,6 +372,7 @@ export default function DashboardPage(): React.JSX.Element {
             content={dailySummary}
             isLoading={isLoadingSummary}
             onRefresh={() => loadAIMessages(true)}
+            onGenerate={generateSummary}
           />
 
           <CoachMessage
@@ -268,6 +380,7 @@ export default function DashboardPage(): React.JSX.Element {
             content={motivation}
             isLoading={isLoadingMotivation}
             onRefresh={() => loadAIMessages(true)}
+            onGenerate={generateMotivation}
           />
         </AISection>
       )}

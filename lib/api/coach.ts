@@ -1,4 +1,5 @@
 import { ApiResponse } from "@/types/forms";
+import { CoachMessageType } from "@prisma/client";
 
 export interface CoachSummaryResponse {
   content: string;
@@ -20,6 +21,13 @@ export interface CoachMotivationResponse {
   };
 }
 
+export interface IngestRequest {
+  messageType: CoachMessageType;
+  content: string;
+  metadata?: Record<string, any>;
+  validUntilHours?: number;
+}
+
 export const coachApi = {
   /**
    * Get daily or weekly summary
@@ -34,6 +42,10 @@ export const coachApi = {
     });
 
     const response = await fetch(`/api/coach/summary?${params}`);
+    console.info("[coachApi] getSummary", {
+      status: response.status,
+      url: `/api/coach/summary?${params}`,
+    });
     const data: ApiResponse<CoachSummaryResponse> = await response.json();
 
     if (response.status === 404) {
@@ -66,6 +78,7 @@ export const coachApi = {
 
     const url = `/api/coach/motivation?${params}`;
     const response = await fetch(url);
+    console.info("[coachApi] getMotivation", { status: response.status, url });
     const data: ApiResponse<CoachMotivationResponse> = await response.json();
 
     if (response.status === 404) {
@@ -82,5 +95,25 @@ export const coachApi = {
     }
 
     return data.data!;
+  },
+
+  /**
+   * Ingest client-generated AI content to server cache
+   */
+  async ingest(request: IngestRequest): Promise<void> {
+    const response = await fetch("/api/coach/ingest", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request),
+    });
+
+    console.info("[coachApi] ingest", { status: response.status });
+    const data: ApiResponse<void> = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || "Failed to ingest AI content");
+    }
   },
 };

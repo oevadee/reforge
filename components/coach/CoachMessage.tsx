@@ -9,6 +9,7 @@ interface CoachMessageProps {
   content: string;
   isLoading?: boolean;
   onRefresh?: () => Promise<void>;
+  onGenerate?: () => Promise<void>;
 }
 
 export function CoachMessage({
@@ -16,8 +17,10 @@ export function CoachMessage({
   content,
   isLoading,
   onRefresh,
+  onGenerate,
 }: CoachMessageProps): React.JSX.Element {
   const [refreshing, setRefreshing] = useState(false);
+  const [generating, setGenerating] = useState(false);
 
   const handleRefresh = async (): Promise<void> => {
     if (!onRefresh || refreshing) return;
@@ -30,12 +33,28 @@ export function CoachMessage({
     }
   };
 
+  const handleGenerate = async (): Promise<void> => {
+    if (!onGenerate || generating) return;
+
+    try {
+      setGenerating(true);
+      await onGenerate();
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const isPlaceholder =
+    content.includes("Enable AI in Settings") ||
+    content.includes("AI insights are off") ||
+    content.includes("Unable to load");
+
   return (
     <Card>
       <Header>
         <Icon>🤖</Icon>
         <Title>{title}</Title>
-        {onRefresh && (
+        {onRefresh && !isPlaceholder && (
           <RefreshButton
             onClick={handleRefresh}
             disabled={isLoading || refreshing}
@@ -46,10 +65,19 @@ export function CoachMessage({
       </Header>
 
       <Content>
-        {isLoading ? (
-          <LoadingText>Generating message...</LoadingText>
+        {isLoading || generating ? (
+          <LoadingText>
+            {generating ? "Generating with on-device AI..." : "Loading..."}
+          </LoadingText>
         ) : (
-          <Message>{content}</Message>
+          <>
+            <Message>{content}</Message>
+            {isPlaceholder && onGenerate && (
+              <GenerateButton onClick={handleGenerate} disabled={generating}>
+                ✨ Generate Now
+              </GenerateButton>
+            )}
+          </>
         )}
       </Content>
     </Card>
@@ -123,4 +151,27 @@ const Message = styled.p`
   line-height: ${({ theme }) => theme.typography.lineHeight.relaxed};
   white-space: pre-wrap;
   margin: 0;
+`;
+
+const GenerateButton = styled.button`
+  margin-top: ${({ theme }) => theme.spacing.md};
+  padding: ${({ theme }) => `${theme.spacing.sm} ${theme.spacing.md}`};
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: white;
+  border: none;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
+  cursor: pointer;
+  transition: all ${({ theme }) => theme.transitions.fast};
+
+  &:hover:not(:disabled) {
+    background-color: ${({ theme }) => theme.colors.primaryHover};
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 `;
